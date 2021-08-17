@@ -303,7 +303,7 @@ C===============================================================================
 
       LOGICAL FUNCTION XCHECK_KINE(del2,xb,Q2,E)
       IMPLICIT NONE
-      REAL del2,xb,Q2,E
+      REAL del2,xb,Q2,E,KSI
       real Mp, mele, pi,mpi0
       real fluxw, rxs
       parameter (Mp=0.93827)
