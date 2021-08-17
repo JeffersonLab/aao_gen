@@ -4,10 +4,10 @@
       implicit none
 
       real the,ki_mag,q2,w,cscm,phicm,kf_mag,s2
-      real fkt
+      real fkt, dvmpsig, maidsig
       real sig0,sigu,sigt,sigl,sigi,sigip,asym_p
       real nu,eps,eps1
-      real q2_dummy, W_dummy, hcs_dummy, W2_dummy
+      real q2_dummy, W_dummy, hcs_dummy, W2_dummy, W2_thr, W_thr
       real Mp, mpi0, amp2, amu2, mesonmass, meta, mpip
       real xb_dummy, E_pi_cm, ppi_mag_cm, qv_mag_cm
       real nu_cm, t_dummy
@@ -75,15 +75,36 @@ CVPK         if(w.gt.2.and.opt2.eq.1) then
            nu_cm  = (W2_dummy-amp2-q2_dummy)/(2*W_dummy)
            t_dummy =  -(-q2_dummy) - amu2 + 2*nu_cm*E_pi_cm
      1             - hcs_dummy * (2*qv_mag_cm*ppi_mag_cm)
-          call dvmpw(hcs_dummy,w_dummy,q2_dummy,phicm*pi/180.,ki_mag,ehel,mesonmass,
+           call dvmpw(hcs_dummy,w_dummy,q2_dummy,phicm*pi/180.,ki_mag,ehel,mesonmass,
      1           sig0,sigu,sigl,sigt,sigi,sigip)
 
-           fkt  = 2*W_dummy*ppi_mag_cm/(W2_dummy - amp2)
+           fkt  = 1
            sig0 = fkt*sig0
 
          else
+           amp2 = 0.93827**2
+           amu2 = mesonmass**2
+           q2_dummy = q2
+           W_thr  = 1.82
+           hcs_dummy = cscm
+           W2_thr = W_thr**2
+           xb_dummy = q2_dummy/(W2_thr - amp2 + q2_dummy)
+           E_pi_cm    = 0.5*(w2_thr+amu2-amp2)/W_thr
+           ppi_mag_cm = E_pi_cm**2 - amu2
+           ppi_mag_cm = sqrt(ppi_mag_cm)
+           qv_mag_cm  = ((W2_thr+q2_dummy+amp2)/2.0/W_thr)**2
+     1                   -amp2
+           qv_mag_cm  = sqrt(qv_mag_cm)
+           nu_cm  = (W2_thr-amp2-q2_dummy)/(2*W_thr)
+           t_dummy =  -(-q2_dummy) - amu2 + 2*nu_cm*E_pi_cm
+     1             - hcs_dummy * (2*qv_mag_cm*ppi_mag_cm)
+           call dvmpw(hcs_dummy,w_thr,q2_dummy,phicm*pi/180.,ki_mag,ehel,mesonmass,
+     1           dvmpsig,sigu,sigl,sigt,sigi,sigip)
+           call maid_lee(q2,w_thr,eps,cscm,phicm,opt1,opt2,opt3,
+     1           maidsig,sigu,sigt,sigl,sigi,sigip,asym_p,ehel)
            call maid_lee(q2,w,eps,cscm,phicm,opt1,opt2,opt3,
      1           sig0,sigu,sigt,sigl,sigi,sigip,asym_p,ehel)
+           sig0 = sig0*dvmpsig/maidsig
          endif
       endif
 c      print *, 'DSIGMA: ',sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel 
