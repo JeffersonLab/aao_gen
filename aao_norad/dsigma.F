@@ -77,9 +77,9 @@ CVPK         if(w.gt.2.and.opt2.eq.1) then
      1             - hcs_dummy * (2*qv_mag_cm*ppi_mag_cm)
           call dvmpw(hcs_dummy,w_dummy,q2_dummy,phicm*pi/180.,ki_mag,ehel,mesonmass,
      1           sig0,sigu,sigl,sigt,sigi,sigip)
-
-           fkt  = 2*W_dummy*ppi_mag_cm/(W2_dummy - amp2)
-           sig0 = fkt*sig0
+c  the factor fkt does not need to be applied for dvmp parameterization
+c           fkt  = 2*W_dummy*ppi_mag_cm/(W2_dummy - amp2)
+c           sig0 = fkt*sig0
 
          else
            call maid_lee(q2,w,eps,cscm,phicm,opt1,opt2,opt3,
