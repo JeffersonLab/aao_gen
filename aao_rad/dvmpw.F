@@ -12,7 +12,7 @@ c W is W
 c xb,Q2 x and Q^2 (GeV^2)
 c Phi_g angle in the photon frame (radians)
 c E energy of the electron in GeV
-c heli electron helicity -1.0 or +1.0
+c heli electron helicity -1 or +1
 c
 cdel2=t (negative GeV^2)           NEGATIVE !!!!
 C
@@ -21,7 +21,8 @@ C The actual masses that will be used for the calculations are in pi0eta.par fil
 
 
       IMPLICIT NONE
-      REAL    COST,W,del2,xb,Q2, Phi_g,E,heli, mesonmass
+      REAL    COST,W,del2,xb,Q2, Phi_g,E,mesonmass
+      INTEGER heli
       REAL    Mp, mele, pi
       parameter (Mp=0.93827)
       parameter (mele=0.000511)
