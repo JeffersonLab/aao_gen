@@ -22,7 +22,8 @@ C MESONMASS is the mass of the pi0 or eta.
 c
 
       IMPLICIT NONE
-      REAL    COST,W,del2,xb,Q2, Phi_g,E,heli, mesonmass
+      REAL    COST,W,del2,xb,Q2, Phi_g,E,mesonmass
+      INTEGER heli
       REAL    Mp, mele, pi
       parameter (Mp=0.93827)
       parameter (mele=0.000511)
