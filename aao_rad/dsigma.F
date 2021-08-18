@@ -90,6 +90,15 @@ c
      1             - hcs_dummy * (2*qv_mag_cm*ppi_mag_cm)
         call dvmpw(hcs_dummy,w_dummy,q2_dummy,phicm,ki_mag,ehel,mesonmass,
      1           sig0,sigu,sigl,sigt,sigi,sigip) 
+     
+c  divided individual structure functions by fkt to be consistent with structure functions from MAID
+            sigu = sigu/fkt
+            sigl = sigl/fkt
+            sigt = sigt/fkt
+            sigi = sigi/fkt
+            sigip = sigip/fkt
+            
+
 c	    call dvmp(-t_dummy,xb_dummy,q2_dummy,phicm,ki_mag,0,
 c     *   sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel)
 c         print *, 'DSIGMA: ',sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel 
