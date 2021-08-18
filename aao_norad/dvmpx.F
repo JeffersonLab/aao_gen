@@ -15,7 +15,8 @@ c heli electron helicity -1.0 or +1.0
 c MESONMASS is the mass of the pi0 or eta
 
       IMPLICIT NONE
-      REAL del2,xb,Q2, Phi_g,E,heli,MESONMASS
+      REAL del2,xb,Q2, Phi_g,E,MESONMASS
+      INTEGER heli
       real Mp, mele, pi
       parameter (Mp=0.93827)
       parameter (mele=0.000511)
@@ -124,7 +125,8 @@ C-------------------------------------------------------------------------------
 C=============================================================================
       REAL FUNCTION XRXSB(del2,x,Q2, Phi_g,E,heli,MESONMASS)
       IMPLICIT NONE
-      REAL       del2,x,Q2,Phi_g,E,heli,MESONMASS
+      REAL       del2,x,Q2,Phi_g,E,MESONMASS
+      INTEGER heli
       REAL       DVMPX,fluxw, pi
       PARAMETER (PI=3.1415926536)
 
