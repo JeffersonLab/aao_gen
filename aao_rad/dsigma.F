@@ -92,6 +92,8 @@ c
      1           sig0,sigu,sigl,sigt,sigi,sigip) 
      
 c  divided individual structure functions by fkt to be consistent with structure functions from MAID
+            fkt  = 2*W_dummy*ppi_mag_cm/(W2_dummy - amp2)
+
             sigu = sigu/fkt
             sigl = sigl/fkt
             sigt = sigt/fkt
