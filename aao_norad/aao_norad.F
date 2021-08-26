@@ -24,13 +24,13 @@ c     and make a new version.
       COMMON/ALPHA/ ALPHA,PI,MP,MPI,MEL,WG,EPIREA
       common /random/idum
       
-      real*8 alpha,pi,mp,mpi,mel,wg,T0
-      real*8 es,ep,ps,pp,rs,rp
+      real*8 alpha,pi,mp,mpi,mel,wg,T0,th0,theta
+      real*8 es,ep,ps,pp,rs,rp,nu
       real*8 cst0,snt0
       real*8 sig_tot,sig_sum
       real*8 ephot
       real lundmass(4)
-
+     
       real pi0costh, pi0phi
       real g1px, g1py, g1pz, g1p
       real g2px, g2py, g2pz, g2p
@@ -52,9 +52,9 @@ c     and make a new version.
       real ran,rotc,rots,rtest
       real s,sigi,sigl,sigt,sigu,sigma0,signr,sig_ratio,sigr_max,stest
       real sigip, asym_p
-      real t_elapse,th0,theta,tries
-      real uq2, uq2_min,uq2_max,uq2rng
-      real w2,wreal
+      real t_elapse,tries
+      real*8 uq2, uq2_min,uq2_max,uq2rng
+      real w2,wreal,w_max
       real t_targ
       real sig_int
       real vertex_x, vertex_y, vertex_z
@@ -76,10 +76,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer*8 idum, count_rate, count_max
       integer*4 ntries
       
-      real*4 ntp(22)
+      real*4 ntp(24)
 
-clcs      common /pawc/h(1000000)
-clcs      common/quest/iquest(100)
+ clcs     common /pawc/h(1000000)
+ clcs     common/quest/iquest(100)
       common/ntup/ntp
       
       integer h,nevent,nmax,istat,icycle
@@ -115,9 +115,7 @@ c     seed_source: 0= use unix timestamp from machine time to generate seed, oth
 
       read(5,*) phys,flag_ehel,npart,epirea,ebeam,q2_min,q2_max,ep_min,
      1ep_max,nmax,fmcall,boso,seed_source
-
-
-      
+    
       if (npart .ne. 3) npart=2
 
       id(1)		= 3		!Geant ID, e-
@@ -167,19 +165,15 @@ c     seed_source: 0= use unix timestamp from machine time to generate seed, oth
       uq2_max		= 1/q2_min
       uq2rng		= uq2_max-uq2_min
 
-      epmax		= es-(wg**2+q2_min-mp**2)/2./mp
-      
-      if (ep_max.lt.epmax) epmax=ep_max
-      
+      epmax		= es-(wg**2+q2_min-mp**2)/2./mp    
+      if (ep_max.lt.epmax) epmax=ep_max     
       eprng		= epmax-ep_min
 
       nprint		= nmax/25
-
       ncycle		= 0
  1    mcall_max		= 0
       ntold		= 0
-
-      
+     
       call timex(itime1)		!Initial seed from internal clock
       call system_clock(idum, count_rate, count_max)
 
@@ -188,11 +182,9 @@ c     seed_source: 0= use unix timestamp from machine time to generate seed, oth
       else
       idum = seed_source
       endif
- !     Print *, 'The value of idum is', idum, ' '
 
-      
-      
-      
+ !     Print *, 'The value of idum is', idum, ' '
+    
       cstk		= myran(idum)
       write(*,*) cstk
       itime2		= itime1 
@@ -215,10 +207,10 @@ clcs      call hbname(10,' ',0,'$clear')
 clcs      call hbname(10,'AONORAD',ntp(1),'ES:R,EP:R,THETE:R,
 clcs     *W:R,PPX:R,PPY:R,PPZ:R,EPROT:R,PPIX:R,PPIY:R,PPIZ:R,
 clcs     *EPI:R,CSTCM:R,PHICM:R,MM:R,QX:R,QZ:R,Q0:R,CSTHE:R,
-clcs     *HEL:R,ASYM:R,Q2:R')
+clcs     *HEL:R,ASYM:R,Q2:R,JAC:R,GAMF:R')
 
-      bosout = file_bos
-      recname = 'MCEVENT'
+c      bosout = file_bos
+c      recname = 'MCEVENT'
 c      if (boso.eq.1) call bos_ini(recname)
 
       write(12,*)' AO Calculation of Single Pion Production'
@@ -234,27 +226,32 @@ c     Do a preliminary calculation to estimate the maximum value
 c     of the integrand
 
  10   q2		= q2_min
-      epw		= 1.232
-      q0		= (epw**2-mp**2+q2)/2./mp	!Q**2 at delta mass
+      epw               = 1.232
+      q0		= (epw**2-mp**2+q2)/2./mp	!nu at delta mass
       ep		= es-q0
-      pp		= sqrt(ep**2-mel**2)
-      rp		= pp/ep
-      s			= q2/4/es/ep
-      th0		= 2.*asin(sqrt(s))
-      theta		= th0*180./pi
-      t0		= th0
-      snt0		= sin(th0)
-      cst0		= cos(th0)
-      evirt		= (epw**2-mp**2)/2./mp
-      qsq		= q2
-      gam_flux		= alpha/4/pi**2*ep/es*evirt/qsq*
-     +  (2. + 1./tan(th0/2)**2/(1.+q0**2/qsq))
+      sigr_max		= 0.     
+      ehel              = 0  
 
-      jacob		= q2**2/(2.*es*ep)
-      sigr_max		= 0.
-      ehel = 0   
-      if(flag_ehel.eq.1) ehel = 1       
-      do i=1,1000
+      if(flag_ehel.eq.1) ehel = 1
+       
+      do i=1,10000
+        ep		= epmax-eprng*myran(idum)
+        nu              = es-ep
+        epw             = sqrt(mp**2-q2+2*mp*nu)
+        pp		= sqrt(ep**2-mel**2)
+        rp		= pp/ep
+        s		= q2/4/es/ep
+        th0		= 2.*asin(sqrt(s))
+        theta		= th0*180./pi
+        t0		= th0
+        snt0		= sin(th0)
+        cst0		= cos(th0)
+        evirt		= (epw**2-mp**2)/2./mp
+        qsq		= q2
+        q0		= (epw**2-mp**2+q2)/2./mp        
+        gam_flux	= alpha/4/pi**2*ep/es*evirt/qsq*
+     +  (2. + 1./tan(th0/2)**2/(1.+q0**2/qsq))
+        jacob		= q2**2/(2.*es*ep)        
         csthcm		= 2.*(myran(idum)-0.5)
         phicm		= 360.*myran(idum)
         call dsigma(th0,qsq,epw,csthcm,phicm,phys,epirea,0,sigma0
@@ -264,13 +261,14 @@ c     of the integrand
           sigr_max	= signr
           csthcm_max 	= csthcm
           phicm_max	= phicm
+          w_max         = epw
         endif
       enddo
 
-      write(6,*)'sigr_max,csthcm_max,phicm_max',
-     *           sigr_max,csthcm_max,phicm_max
-      write(12,*)'sigr_max,csthcm_max,phicm_max',
-     *            sigr_max,csthcm_max,phicm_max
+      write(6,*)'sigr_max,csthcm_max,phicm_max,w_max',
+     *           sigr_max,csthcm_max,phicm_max,w_max
+      write(12,*)'sigr_max,csthcm_max,phicm_max,w_max',
+     *            sigr_max,csthcm_max,phicm_max,w_max
 
       sigr_max		= sigr_max*fmcall
       write(6,*) 'sigr_max changed to',sigr_max
@@ -291,7 +289,7 @@ c   %%%%%%%%%%%%%%%%%%% Main Calculation  %%%%%%%%%%%%%%%%%%%%%%%
 
       q0		= es-ep
       s			= q2/4/es/ep
-      
+
       if (s .gt. .5) go to 20		!Electron angle < 90 deg?
       
       th0		= 2.*asin(sqrt(s))
@@ -310,9 +308,9 @@ c   %%%%%%%%%%%%%%%%%%% Main Calculation  %%%%%%%%%%%%%%%%%%%%%%%
          write(6,*)' Unphysical Q**2 =',qsq
          go to 20
       endif
-      
-      qvecx		= -pp*sin(th0)
-      qvecz		= ps-pp*cos(th0)
+
+      qvecx             =   -pp*snt0
+      qvecz             = ps-pp*cst0
 
       w2		= mp**2+2*mp*q0-q2
       
@@ -394,8 +392,10 @@ c     if mcall .gt. 0 generate mcall n-tuple events.
         ntp(18) = q0
         ntp(19) = cst0
         ntp(20) = ehel
-        ntp(21)     = asym_p
-        ntp(22)     = q2
+        ntp(21) = asym_p
+        ntp(22) = q2
+        ntp(23) = jacob
+        ntp(24) = gam_flux
 
 clcs        call hfnt(10)
         
@@ -523,13 +523,6 @@ c     *               phicm,sigma0,sigu,sigl,sigt,sigi,sigip
      *               lundmass(3), vertex_x, vertex_y, vertex_z
          endif
 
-
-
-
-
-
-
-
 c        if (boso.eq.1) call bos_out	! Pack the BOS banks and write out to file
  24     continue
       enddo
@@ -577,6 +570,7 @@ c     electron phase space =2*pi*uq2rng*eprng
  50   continue
 clcs      call hrout(0,icycle,' ')
 clcs      call hrend('AONORAD')
+clcs      close(unit=1)
 c      if (boso.eq.1) call bos_end(recname)
       
       write(14,*)' AO Calculation of Single Pion Production',
@@ -599,7 +593,6 @@ c      if (boso.eq.1) call bos_end(recname)
      *    ,' seconds'
       close(unit=12)
       close(unit=14)
-clcs      close(unit=1)
 
  99   continue
  
@@ -685,12 +678,11 @@ c     missing mass, the proton momenta and pion momenta.
       implicit none
       common /random/idum
 
-      real*8 es,ep,ps,pp,ephot
+      real*8 es,ep,ps,pp,ephot,th0,csthe,snthe,qx,qz
 
 
       real beta
       real cstk
-      real csthe
       real cstq
       real csthcm
       real cxx,cxy,cxz,cyx,cyy,cyz,czx,czy,czz
@@ -720,15 +712,12 @@ c     missing mass, the proton momenta and pion momenta.
       real pstar
       real pwrx,pwry,pwrz,pwr
       real q2,qvec
-      real qx,qz
       real q_dot_pp
       real snphk
       real snphi
       real snthcm
-      real snthe
       real sntk
       real sntq
-      real th0
       real w2
       real wmin
       real wreal
