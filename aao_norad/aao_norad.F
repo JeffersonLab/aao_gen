@@ -226,9 +226,6 @@ c     Do a preliminary calculation to estimate the maximum value
 c     of the integrand
 
  10   q2		= q2_min
-      epw               = 1.232
-      q0		= (epw**2-mp**2+q2)/2./mp	!nu at delta mass
-      ep		= es-q0
       sigr_max		= 0.     
       ehel              = 0  
 
