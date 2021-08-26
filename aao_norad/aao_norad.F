@@ -78,8 +78,8 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       
       real*4 ntp(24)
 
- clcs     common /pawc/h(1000000)
- clcs     common/quest/iquest(100)
+clcs     common /pawc/h(1000000)
+clcs     common/quest/iquest(100)
       common/ntup/ntp
       
       integer h,nevent,nmax,istat,icycle
