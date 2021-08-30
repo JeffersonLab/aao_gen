@@ -36,7 +36,7 @@ c
       EXTERNAL SIGMA_LTP
       REAL     JACG,JACR
       LOGICAL  CHECK_KINE
-c      REAL DVMPX
+      REAL S_TOT
 C      INCLUDE 'pi0eta.par'
 c
       CALL XSINIT(MESONMASS)
@@ -58,13 +58,13 @@ c
       S_TT =  0.001/(2*pi)*SIGMA_TT    (COST,W,Q2,E)
       S_LTP = 0.001/(2*pi)*2*SIGMA_LTP (COST,W,Q2,E)
 
-      sigma0 = S_T   + EPS*S_L        + 
-     * EPS                  *S_TT  * COS(2*PHI_G)   + 
+      sigma0 = S_T   + EPS*S_L +         
+     *   EPS                  *S_TT  * COS(2*PHI_G)   + 
      * SQRT(2.*EPS*(1.+EPS))*S_LT  * COS(PHI_G)     +
      * HELI*SQRT(2.*EPS*(1.-EPS))*S_LTP * SIN(2*PHI_G)     
             
 c
-c       DVMPW =FLUXW(xb,Q2,E)/(2.*PI)*(
+c       S_TOT =FLUXW(xb,Q2,E)/(2.*PI)*(
 c     *                       S_T   + EPS*S_L          + 
 c     * EPS                  *S_TT  * COS(2*PHI_G)       + 
 c     * SQRT(2.*EPS*(1.+EPS))*S_LT  * COS(PHI_G)     +
@@ -72,13 +72,10 @@ c     * HELI*SQRT(2.*EPS*(1.-EPS))*S_LTP * SIN(2*PHI_G)
 c     * )
       
 c       IF(DVMPW.LT.0.0) DVMPW=0.
-c       PRINT *,DVMPW,COST,W,Q2,del2,xb,phi_g,JACG,JACR
-c      PRINT *,DVMPX(del2,xb,Q2, Phi_g,E,heli,MESONMASS)*JACG*JACR
-c      PRINT *,DVMPX(del2,xb,Q2, Phi_g,E,heli,MESONMASS)
-c      PRINT *,del2,xb,Q2, Phi_g,E,heli,MESONMASS
+c       PRINT *,'DVMPW: S_tot ',S_TOT,COST,W,Q2,-del2,xb,phi_g,mesonmass,
+c     *  eps,FLUXW(xb,Q2,E)
 
-c       PRINT *,DVMPW,COST,W,Q2,phi_g,eps
-c       print *,'S_tot ',  S_T,S_L,S_T   + EPS*S_L 
+c       print *,'S_T ',  S_T,S_L,S_T   + EPS*S_L 
 c       print *,'S_TT  ',  S_TT, EPS     *S_TT  * COS(2*PHI_G) 
 c       print *, 'S_LT ',S_LT,SQRT(2.*EPS*(1.+EPS))*S_LT  * COS(PHI_G) 
 
@@ -191,11 +188,11 @@ C===============================================================================
       parameter (Mp=0.93827)
       parameter (mele=0.000511)
       parameter (pi=3.1415926536)
-           
+            
 
       real nu,W2,qmod,E1cm,P1cm,E2cm,P2cm,del2max,del2min
       real  xmin1,xmax1
-      real y, e1, epsilon
+      double precision y, e1, epsilon
 
       REAL AM(2)
       DATA AM/0.134976,0.547300/
@@ -209,11 +206,11 @@ C===============================================================================
       XB=Q2/(W2+Q2-Mp*Mp)
       nu  = (W2+Q2-Mp*Mp)/(2*Mp)
       qmod = sqrt(nu**2 + Q2)
-      IF(W         .LT. Mp+Mpi0)              RETURN
-      IF(W         .GT. -Q2+2*Mp*E+Mp*Mp)     RETURN
+      IF(W         .LE. Mp+Mpi0)              RETURN
+      IF(W2        .GE. -Q2+2*Mp*E+Mp*Mp)     RETURN
       IF(Q2/(4*E*(E-NU)) .GE. 1.0)            RETURN
-      IF(XB        .LT. Q2/(2*Mp*E))          RETURN
-      IF(ABS(COST) .GT. 1.0)                  RETURN
+      IF(XB        .LE. Q2/(2*Mp*E))          RETURN
+      IF(ABS(COST) .GE. 1.0)                  RETURN
       xmin1 = Q2/(2.0*Mp*E)
       xmax1 = 1.0
 
@@ -232,7 +229,7 @@ C===============================================================================
       e1=(y*xb*Mp)**2/Q2
       EPSILON=(1.0-y-e1)/(1-y+y**2/2+e1)
 
-      IF(EPSILON.LT.0. .OR.EPSILON .GT.1.)         RETURN
+      IF(EPSILON.LE.0. .OR.EPSILON .GE. 1.0)         RETURN
 
 C      jacobian
 C      JAC=4*P1cm*P2CM*W*XB/(W2+Q2-Mp*Mp)
@@ -240,7 +237,7 @@ C      JAC=4*P1cm*P2CM*W*XB/(W2+Q2-Mp*Mp)
       JACR=2*P1cm*P2CM
 
       CHECK_KINE=.TRUE.
-
+c      PRINT *,'Check_kine: ', W,xB,nu,qmod,E1cm,E2cm,del2,y,e1
       RETURN
       END
 
