@@ -62,7 +62,7 @@ c
      *   EPS                  *S_TT  * COS(2*PHI_G)   + 
      * SQRT(2.*EPS*(1.+EPS))*S_LT  * COS(PHI_G)     +
      * HELI*SQRT(2.*EPS*(1.-EPS))*S_LTP * SIN(2*PHI_G)     
-            
+       IF(sigma0.LT.).)) sigma0=0.0     
 c
 c       S_TOT =FLUXW(xb,Q2,E)/(2.*PI)*(
 c     *                       S_T   + EPS*S_L          + 
