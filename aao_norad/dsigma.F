@@ -3,7 +3,8 @@
 
       implicit none
 
-      real the,ki_mag,q2,w,cscm,phicm,kf_mag,s2
+      real ki_mag,q2,w,cscm,phicm,kf_mag,s2
+      real*8 the
       real fkt
       real sig0,sigu,sigt,sigl,sigi,sigip,asym_p
       real nu,eps,eps1
