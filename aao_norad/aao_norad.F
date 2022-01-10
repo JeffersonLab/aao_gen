@@ -21,10 +21,10 @@ c     and make a new version.
 #include "mc.inc"
 #include "names.inc"
 
-      COMMON/ALPHA/ ALPHA,PI,MP,MPI,MEL,WG,EPIREA
+      COMMON/ALPHA/ ALPHA,PI,MP,MN,MPI,MEL,WG,EPIREA
       common /random/idum
       
-      real*8 alpha,pi,mp,mpi,mel,wg,T0,th0,theta
+      real*8 alpha,pi,mp,mn,mpi,mel,wg,T0,th0,theta
       real*8 es,ep,ps,pp,rs,rp,nu
       real*8 cst0,snt0
       real*8 sig_tot,sig_sum
@@ -90,7 +90,8 @@ clcs     common/quest/iquest(100)
       DATA PI   /3.1415926/
       DATA MPIP /.1395/
       DATA MPI0 /.1349/
-      DATA MP   /.938/
+      DATA MP   /.93828/
+      DATA MN   /.93957/
       DATA MEL  /.511E-3/
       
       data filerz	/'aao_norad.rz'/
@@ -131,6 +132,16 @@ c     seed_source: 0= use unix timestamp from machine time to generate seed, oth
             id(3)     	=  7            !Geant ID, pi-zero
             pdgid(3)  	= 111		!PDG ID, pi-zero
             q(3) 	= 0
+         endif
+      elseif (epirea.eq.2) then
+         mpi		= mpip
+         id(2)     	= 8             !Geant ID, pi-minus
+         pdgid(2)  	= 212		!PDG ID, pi-minus
+         q(2) 		= -1
+         if (npart.eq.3) then
+            id(3)	= 14		!Geant ID, proton
+            pdgid(3)	= 2212		!PDG ID, proton
+            q(3) 	= 1
          endif
       elseif (epirea.eq.3) then
          mpi		= mpip
@@ -215,7 +226,7 @@ c      if (boso.eq.1) call bos_ini(recname)
 
       write(12,*)' AO Calculation of Single Pion Production'
       write(12,*)' Seed:',idum
-      write(12,*)' Epirea (1 for pi0, 3 for pi+) =',epirea
+      write(12,*)' Epirea (1 for pi0, 2 for pi-,  3 for pi+) =',epirea
       write(12,*)' Target thickness =',t_targ,' (r.l.)'
       write(12,*)' Incident electron energy =',ebeam,' GeV'
       write(12,*)' Electron Q**2 limits:',q2_min,q2_max
@@ -414,6 +425,7 @@ clcs        call hfnt(10)
         p(1,2) = py*rotc-px*rots
         p(1,3) = ep*cos(theta*pi/180.)
         p(1,4) = ep
+
         if (epirea .eq. 1) then !Charged hadron
           p(2,1) = ppx*rotc+ppy*rots
           p(2,2) = ppy*rotc-ppx*rots
@@ -444,6 +456,7 @@ clcs        call hfnt(10)
          vertex_z = 5.0*(myran(idum)-0.5) - 3.0
          lundmass(1) = MEL
          lundmass(4) = 0
+
          if ((epirea .eq. 1).or.(epirea.eq.5)) then
             lundmass(2) = MP
             lundmass(3) = MPI
@@ -501,11 +514,11 @@ c     *               phicm,sigma0,sigu,sigl,sigt,sigi,sigip
      *               vertex_x, vertex_y, vertex_z
 
          else
-            if (epirea.eq.3) then
-               lundmass(2) = MPIP
-* neutron mass 940 MeV                                                                                                                          
-               lundmass(3) = 0.940
-            endif
+           
+            lundmass(2) = MPIP                                                                                               
+            if(epirea.eq.2) lundmass(3) = MP
+            if(epirea.eq.3) lundmass(3) = MN
+
             write(13,*) "3 1 1 0 0 ",q2/(2.0*MP*(ebeam-p(1,4))), 0, epw,
      *               q2, (ebeam-p(1,4))
 c     *               phicm,sigma0,sigu,sigl,sigt,sigi,sigip
