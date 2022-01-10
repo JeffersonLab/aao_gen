@@ -28,7 +28,7 @@ c     and make a new version.
 #include "mc.inc"
 #include "names.inc"
 
-      COMMON/ALPHA/ ALPHA,PI,MP,MPI,MEL,WG,EPIREA,TH_OPT,RES_OPT
+      COMMON/ALPHA/ ALPHA,PI,MP,MN,MPI,MEL,WG,EPIREA,TH_OPT,RES_OPT
       common /radcal/T0,es,ep,ps,pp,rs,rp,u0,pu,uu,cst0,snt0,csths,csthp
      * ,snths,snthp,pdotk,sdotk
       common /random/idum
@@ -38,7 +38,7 @@ c     and make a new version.
       integer sseed(64)
       integer ssize
       real*8 ek,Tk,delta
-      real*8 alpha,pi,mp,mpi,mel,wg,T0
+      real*8 alpha,pi,mp,mn,mpi,mel,wg,T0
       real*8 es,ep,ps,pp,rs,rp,u0,pu,uu,pdotk,sdotk
       real*8 cst0,snt0,csths,csthp,snths,snthp
 
@@ -191,7 +191,8 @@ c     character*1 ich1
       DATA MPIP /.1395/
       DATA MPI0 /.1349/
       DATA META /.547853/
-      DATA MP   /.938/
+      DATA MP   /.93828/
+      DATA MN   /.93957/
       DATA MEL  /.511E-3/
 
       data filerz   /'aao_rad.hbook'/
@@ -260,7 +261,7 @@ c     set up parameters for bos bank input to GSIM
 c   
 c     Choose whether a neutral or charged pion is made in the reaction
 
- 5    print *, ' Input epirea (1 for pi0, 3 for pi+, 5 for eta)'
+ 5    print *, ' Input epirea (1 for pi0, 2 for pi-, 3 for pi+, 5 for eta)'
       read(5,*)epirea
       print *, 'epiarea=', epirea
       
@@ -279,6 +280,16 @@ c     Choose whether a neutral or charged pion is made in the reaction
             pdgid(3)  = 111		!PDG ID, pi-zero
             q(3)      = 0
          endif
+      elseif (epirea.eq.2) then
+          mpi		= mpip
+          id(2)     	= 8             !Geant ID, pi-minus
+          pdgid(2)  	= 212		!PDG ID, pi-minus
+          q(2) 		= -1
+          if (npart.eq.3) then
+             id(3)	= 14		!Geant ID, proton
+             pdgid(3)	= 2212		!PDG ID, proton
+             q(3) 	= 1
+          endif
       elseif(epirea.eq.3)then
          MPI	= MPIP
          mm_exp	= mp**2
@@ -468,7 +479,7 @@ Clcs      call hbookn(10,'func1',n,'aaoradgen',1000,tag)
 
       write(12,*)' AO Calculation of Single Pion Production'
       write(12,*)' Starting time:', ctime
-      write(12,*)' Epirea (1 for pi0, 3 for pi+, 5 for eta) =',epirea
+      write(12,*)' Epirea (1 for pi0, 2 for pi-, 3 for pi+, 5 for eta) =',epirea
       write(12,*)' Target thickness =',t_targ*3./4.,' (r.l.)'
       write(12,*)' Incident electron energy =',ebeam,' GeV'
 
@@ -1196,10 +1207,10 @@ c         if (theta.lt.16) goto 24
          if ((epirea .eq. 1).or.(epirea.eq.5)) then
             lundmass(2) = MP
             lundmass(3) = MPI
-         else if (epirea.eq.3) then
+         else 
             lundmass(2) = MPIP
-* neutron mass 940 MeV
-            lundmass(3) = 0.940 
+            if(epirea.eq.2) lundmass(3) = MP
+            if(epirea.eq.3) lundmass(3) = MN
          endif
 
          write(13,*) "4 1 1 0 0 ",q2/(2.0*MP*(ebeam-p(1,4))), 0, epw, 
@@ -1343,12 +1354,12 @@ c     the AO cross section for single pion production from the proton.
 
 
       implicit none
-      COMMON/ALPHA/ ALPHA,PI,MP,MPI,MEL,WG,EPIREA,TH_OPT,RES_OPT
+      COMMON/ALPHA/ ALPHA,PI,MP,MN,MPI,MEL,WG,EPIREA,TH_OPT,RES_OPT
       common /radcal/T0,es,ep,ps,pp,rs,rp,u0,pu,uu,cst0,snt0,csths,csthp
      * ,snths,snthp,pdotk,sdotk
 
       real*8 ek,Tk
-      real*8 alpha,pi,mp,mpi,mel,wg
+      real*8 alpha,pi,mp,mn,mpi,mel,wg
       real*8 T0,es,ep,ps,pp,rs,rp,u0,pu,uu,pdotk,sdotk
       real*8 cst0,snt0,csths,csthp,snths,snthp
       real*8 csthk,snthk,qq,mf2
