@@ -5,7 +5,7 @@
 
       real ki_mag,q2,w,cscm,phicm,kf_mag,s2
       real*8 the
-      real fkt
+      real fkt, w_thr, w2_thr, dvmpsig, maidsig
       real sig0,sigu,sigt,sigl,sigi,sigip,asym_p
       real nu,eps,eps1
       real q2_dummy, W_dummy, hcs_dummy, W2_dummy
@@ -59,7 +59,7 @@ c        print *, 'ABORT',ki_mag,kf_mag,q2,w
 
 c         if(w.gt.1.7.and.opt2.eq.1) then
 CVPK         if(w.gt.2.and.opt2.eq.1) then
-         if(w.gt.1.9 .and. opt2.eq.1) then
+         if(w.gt.1.8 .and. opt2.eq.1) then
            amp2 = 0.93827**2
            amu2 = mesonmass**2
            q2_dummy = q2
@@ -93,8 +93,29 @@ c           fkt  = 2*W_dummy*ppi_mag_cm/(W2_dummy - amp2)
 c           sig0 = fkt*sig0
 
          else
+           amp2 = 0.93827**2
+           amu2 = mesonmass**2
+           q2_dummy = q2
+           W_thr  = 1.8
+           hcs_dummy = cscm
+           W2_thr = W_thr**2
+           xb_dummy = q2_dummy/(W2_thr - amp2 + q2_dummy)
+           E_pi_cm    = 0.5*(w2_thr+amu2-amp2)/W_thr
+           ppi_mag_cm = E_pi_cm**2 - amu2
+           ppi_mag_cm = sqrt(ppi_mag_cm)
+           qv_mag_cm  = ((W2_thr+q2_dummy+amp2)/2.0/W_thr)**2
+     1                   -amp2
+           qv_mag_cm  = sqrt(qv_mag_cm)
+           nu_cm  = (W2_thr-amp2-q2_dummy)/(2*W_thr)
+           t_dummy =  -(-q2_dummy) - amu2 + 2*nu_cm*E_pi_cm
+     1             - hcs_dummy * (2*qv_mag_cm*ppi_mag_cm)
+           call dvmpw(hcs_dummy,w_thr,q2_dummy,phicm*pi/180.,ki_mag,ehel,mesonmass,
+     1           dvmpsig,sigu,sigl,sigt,sigi,sigip)
+           call maid_lee(q2,w_thr,eps,cscm,phicm,opt1,opt2,opt3,
+     1           maidsig,sigu,sigt,sigl,sigi,sigip,asym_p,ehel)
            call maid_lee(q2,w,eps,cscm,phicm,opt1,opt2,opt3,
      1           sig0,sigu,sigt,sigl,sigi,sigip,asym_p,ehel)
+           sig0 = sig0*dvmpsig/maidsig
          endif
       endif
 c      print *, 'DSIGMA: ',sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel 
