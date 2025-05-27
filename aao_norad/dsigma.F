@@ -13,14 +13,14 @@
       real xb_dummy, E_pi_cm, ppi_mag_cm, qv_mag_cm
       real nu_cm, t_dummy
       integer ehel
-      real cthe     
+      real cthe
       integer opt1,opt2,opt3
       real pi
       parameter (Mp=0.93827)
       PARAMETER (MPI0=0.134976,MPIP=0.13957018,META=0.547853)
       PARAMETER (PI=3.1415926536)
       logical test1,test2,test3
- 
+
       if (opt2.eq.1) then
         mesonmass = mpi0
       elseif (opt2.eq.3) then
@@ -38,9 +38,9 @@
 
       test1	= ki_mag.lt.0.1.or.kf_mag.lt.0.01
       test3	= opt1.ge.4.and.(w.lt.1.1)
-      
+
       if (test1.or.test3) then
-c        print *, 'ABORT',ki_mag,kf_mag,q2,w        
+c        print *, 'ABORT',ki_mag,kf_mag,q2,w
         sig0 = 0.
         sigu = 0.
         sigt = 0.
@@ -53,7 +53,7 @@ c        print *, 'ABORT',ki_mag,kf_mag,q2,w
 
       if(opt1.eq.1) call aao(q2,w,eps,cscm,phicm,1,sig0,
      1             sigu,sigt,sigl,sigi)
-      if(opt1.eq.2) 
+      if(opt1.eq.2)
      1   call daresbury(q2,w,eps,cscm,phicm,1,sig0)
       if(opt1.eq.4.or.opt1.eq.5) then
 
@@ -118,5 +118,5 @@ c           sig0 = fkt*sig0
            sig0 = sig0*dvmpsig/maidsig
          endif
       endif
-c      print *, 'DSIGMA: ',sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel 
+c      print *, 'DSIGMA: ',sig0,sigu,sigl,sigt,sigi,sigip,asym_p,ehel
       end
