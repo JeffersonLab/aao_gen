@@ -14,6 +14,10 @@ c
       real m_pi, alpi
       real sigma0,sigu,sigt,sigl,sigi,sigip,asym_p
       integer ehel
+C vpk
+C      character*256 data_file
+      character*256 get_maid07_tbl   ! <-- Declaration is required!
+      
 c
       data n_call /0/
 c
@@ -185,9 +189,12 @@ c
       if (theory_opt.eq.5) then
         if (channel_opt.eq.1) then
           if (resonance_opt.eq.0) then
+             data_file = get_maid07_tbl('MAID07_TBL',
+     1       '/group/clas/parms/spp_tbl/maid07-PPpi.tbl')
+
+c     data_file = '/group/clas/parms/spp_tbl/maid07-PPpi.tbl';
 c            call revinm('CLAS_PARMS',
 c     1      'spp_tbl/maid07-PPpi.tbl',data_file)
-             data_file = '/group/clas/parms/spp_tbl/maid07-PPpi.tbl'
 
           elseif (resonance_opt.eq.1) then
             call revinm('CLAS_PARMS',
@@ -235,10 +242,14 @@ c     1      'spp_tbl/maid07-PPpi.tbl',data_file)
         endif
         if (channel_opt.eq.2) then
           if (resonance_opt.eq.0) then
-c            call revinm('CLAS_PARMS',
-c     1      'spp_tbl/maid2000-NPpi.tbl',data_file)
-            data_file = '/group/clas/parms/spp_tbl/maid07-NPpi.tbl'          
-            elseif (resonance_opt.eq.1) then
+             data_file = get_maid07_tbl('MAID07_TBL',
+     1       '/group/clas/parms/spp_tbl/maid07-PPpi.tbl')
+
+c     call revinm('CLAS_PARMS',
+c     1      'spp_tbl/maid07-PPpi.tbl',data_file)
+c          data_file = '/group/clas/parms/spp_tbl/maid07-NPpi.tbl'
+
+          elseif (resonance_opt.eq.1) then
             call revinm('CLAS_PARMS',
      1      'spp_tbl/maid2000_p33_on-NPpi.tbl',data_file)
           elseif (resonance_opt.eq.2) then
@@ -284,9 +295,13 @@ c     1      'spp_tbl/maid2000-NPpi.tbl',data_file)
         endif
         if (channel_opt.eq.3) then
           if (resonance_opt.eq.0) then
+             data_file = get_maid07_tbl('MAID07_TBL',
+     1       '/group/clas/parms/spp_tbl/maid07-PPpi.tbl')
+
+c     data_file = '/group/clas/parms/spp_tbl/maid07-PNpi.tbl';
 c            call revinm('CLAS_PARMS',
-c     1      'spp_tbl/maid2000-PNpi.tbl',data_file)
-          data_file = '/group/clas/parms/spp_tbl/maid07-PNpi.tbl'
+c     1      'spp_tbl/maid07-PNpi.tbl',data_file)
+
           elseif (resonance_opt.eq.1) then
             call revinm('CLAS_PARMS',
      1      'spp_tbl/maid2000_p33_on-PNpi.tbl',data_file)
@@ -373,6 +388,40 @@ c
       return
       end
       subroutine revinm(A,B,C)
-      Character A*(*),B*(*),C*(*)                                                                                                              
+      Character A*(*),B*(*),C*(*)
+      return
+      end
+
+      
+C      program test_tbl
+C     Test the function get_maid07_tbl
+C     implicit none
+
+C      character*256 data_file
+C      character*256 get_maid07_tbl   ! <-- Declaration is required!
+
+C      data_file = get_maid07_tbl('MAID07_TBL',
+C     & '/group/clas/parms/spp_tbl/maid07-PPpi.tbl')
+
+C      print *, 'tbl_file = ', trim(data_file)
+C      end
+C------------------------------------------------------------------------
+      character*256 function get_maid07_tbl(env_name, fixed_location)
+C     Define the location of the maid07.tbl data.
+C     if env_name is not defined or invalid take the fixed locaytion else take from $env_name      
+      implicit none
+      character*(*) env_name, fixed_location
+      character*256 env_value
+      integer len_env
+
+      call getenv(env_name, env_value)
+      len_env = len_trim(env_value)
+
+      if (len_env > 0) then
+        get_maid07_tbl = env_value(1:len_env)
+      else
+        get_maid07_tbl = fixed_location
+      end if
+
       return
       end

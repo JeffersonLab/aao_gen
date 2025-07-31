@@ -8,6 +8,7 @@
       real vl, vt, vlt, vtt, vltp
       real phicm_rad, ekin
       real sigma_p, sigma_u
+      real ratio
 
       call multipole_amps ! calc. multipole amplitudes
       call helicity_amps  ! calc. helicity amplitudes
@@ -51,8 +52,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      1        + vtt*sigma_tt*cos(2*phicm_rad)
      1        + vlt*sigma_lt*cos(phicm_rad))
 c
-      if (q2.ge.5) sigma_u = sigma_u/(q2 - 4)
-      if (q2.ge.5) sigma_p = sigma_p/(q2 - 4)
+c      if (q2.ge.1) sigma_u = sigma_u*(0.0918*q2**2.1485)
+c      if (q2.ge.1) sigma_p = sigma_p*(0.0918*q2**2.1485)
+       sigma_u=sigma_u * ratio(q2)
+       sigma_p=sigma_p * ratio(q2)
 
       sigma_p  = fkt*vltp*sigma_ltp*sin(phicm_rad)
 
@@ -62,3 +65,29 @@ c
 c      print *, 'xsection: ',sigma_0,sigma_u, sigma_p,asym_ltp, e_hel
 c
       end
+C
+C------     RATIO(Q2) =  DVMP(W=1.8)/MAID(W=1.8) as a function of Q2
+C
+      REAL FUNCTION RATIO(Q2)
+      implicit none
+      real Q2,x(19),y(19)
+      INTEGER I,N
+      data x/ 0.,0.1387, 0.243, 0.3446, 0.4455,
+     *    0.669, 1.193, 1.706, 2.,   2.21, 2.71, 3.4,
+     *    4.,    4.41,  5.45,  6.46, 7.46, 8.47, 9.45/
+
+
+      data y/7., 4.25, 1.6538, 0.990, 0.8494,
+     *       0.493151, 0.368132, 0.444444, 0.454545,
+     *       0.514286, 0.692308, 1.21429, 1.81416,
+     *       2.55738, 4.0, 4.15385, 4.84444, 5.75, 7.04545/
+      N=19
+      do I=1,N-1
+        if(Q2.ge.x(i) .and. Q2.le.x(i+1)) then
+          ratio=y(i)+(y(i+1)-y(i))/(x(i+1)-x(i))*(Q2-x(i))
+        endif
+      enddo
+      if(Q2.gt.x(N)) ratio=Y(N) + (Q2-X(N)) * 1.0538
+      RETURN
+      END
+
