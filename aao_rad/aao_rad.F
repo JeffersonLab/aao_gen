@@ -122,7 +122,7 @@ c     and make a new version.
       real theta
       real tk_max
       real tp
-      real tries
+      real*8 tries
       real itime1, itime2
       real ts
       real uek
@@ -152,7 +152,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer ehel
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer*4 idum
-      integer*4 ntries
+c     integer*8: at ~2M tries/event (DIS/DVMP bins) a 32-bit counter
+c     overflows after ~1000 events and the printed cross section
+c     becomes invalid
+      integer*8 ntries
       
       real cfac,asig
 
@@ -433,9 +436,17 @@ c     Use the internal clock to initialize the random number generator
 
       call date_and_time(values=timevals)
       call random_seed(size=ssize)
-      write(6,*)'seed:',ssize
-      sseed(:) = timevals(8)
+
+c     Seed from unix time + process id: unique for every run and for
+c     every parallel job. (The old seed used only the millisecond of
+c     the start time, timevals(8), giving just 1000 possible event
+c     sequences - parallel jobs could generate identical events.)
+
+      do i = 1, 64
+         sseed(i) = abs(idum) + 1000*getpid() + i
+      enddo
       call random_seed(put=sseed)
+      write(6,*)'seed:',sseed(1)
 
 c      call random_number(rnd)
 c      write(6,*)'seed:',rnd
@@ -557,9 +568,20 @@ c     calculate kinematic quantities needed for the Mo and Tsai calculation
       
       jacob	= exp(kexp*ek)/kexp*(q2**2/(2*es*ep))
 c
-      ehel = 0   
-      if(flag_ehel.eq.1) ehel = 1    
-c    
+      ehel = 0
+      if(flag_ehel.eq.1) ehel = 1
+c
+c     Use a FIXED seed for the ceiling scan below, so that every run and
+c     every parallel job finds exactly the same sigr_max (otherwise each
+c     job gets its own stochastic ceiling and an unlucky low estimate
+c     produces heavily duplicated events, mcall >> 1). The unique run
+c     seed (unixtime+PID) is restored right after the scan.
+
+      do i = 1, 64
+         sseed(i) = 987654321 + i
+      enddo
+      call random_seed(put=sseed)
+c
       do i=1,10000
         csthcm	= 2.*(myran()-0.5)
         phicm	= 360.*myran()
@@ -599,8 +621,19 @@ c
       write(12,*)'sigr_max,ek_max,tk_max,csthcm_max,phicm_max',
      * sigr_max,ek_max,tk_max,csthcm_max,phicm_max
      
-      sigr_max	= sigr_max*fmcall
-      
+c     Safety factor 2: the 10000-point scan at (Q2_min, W=1.232) can miss
+c     the true global maximum in the tails of the photon phase space;
+c     the factor keeps ceiling violations (mcall > 1) rare.
+
+      sigr_max	= 2.*sigr_max*fmcall
+
+c     Restore the unique run seed (unixtime+PID) after the fixed-seed scan
+
+      do i = 1, 64
+         sseed(i) = abs(idum) + 1000*getpid() + i
+      enddo
+      call random_seed(put=sseed)
+
  25   write(6,*) ' sigr_max changed to ',sigr_max
       write(12,*)' sigr_max changed to ',sigr_max
 
@@ -1232,7 +1265,13 @@ C         print *,'Event to be written'
 Cvpk         call bos_out	! Pack the BOS banks and write out to file   
          nevent	= nevent+1
 C         print *,'Events=',nevent,nprint
-         goto 124
+c     vpk 2026: was "goto 124", which jumped past the enddo and wrote each
+c     event only once, ignoring mcall. That under-weighted the radiative
+c     tail (sigr > sigr_max, mcall >= 2) by ~2-4%. Route to label 24 (the
+c     loop-continue used by the ep_min rejection) so all mcall copies are
+c     written and the sample is unbiased; the printed sigma was never
+c     affected (it uses sig_tot, accumulated before this loop).
+         goto 24
  24      continue
        enddo
 
@@ -1517,11 +1556,17 @@ c     terms
          sigma=0.1e-30
          return
 
+c     The relative phi-modulation must be normalized to the
+c     phi-independent photoabsorption cross section sigma_T+eps*sigma_L
+c     (= sigu+epeps*sigl), NOT to sigf, which carries the Mo-Tsai
+c     W1/W2 kinematic factors. Dividing by sigf distorted the cos(2phi)
+c     and cos(phi) modulation of the radiative tail: RC(phi) acquired
+c     an artificial cos(2phi) structure absent in EXCLURAD and in the
+c     published CLAS pi0 radiative corrections.
  123   sigf=sigf * (1.+(epeps*sigt*cos(epphi*pi/90.)
      &  +sqrt(epeps*(1.+epeps)/2)*sigi*cos(epphi*pi/180.)
      &  +ehel*sqrt(epeps*(1.-epeps)/2)*sigip*sin(epphi*pi/180.))
-c     &  /(sigu+epeps*sigl))
-     &  /sigf)
+     &  /(sigu+epeps*sigl))
 
        if (sigf .gt. 0.)go to 124
          write(6,*)' sigma-5: sigf =',sigf
